@@ -4,18 +4,22 @@
 #include <ArduinoMqttClient.h>
 #include "esp_eap_client.h"
 
-const char* ssid = "Rui";      // wifi name (with phone hotspot)
+const char* ssid = "Rui"; // wifi name (with phone hotspot)
 const char* password = "ruicontrasenha123"; // password
+
 
 WiFiClient wifiClient;
 MqttClient mqttClient(wifiClient);
 
-const char broker[] = "193.147.79.118"; // where to send the messages
+// Where to send the messages
+const char broker[] = "193.147.79.118";
 int port = 21883;
 
+// Parameters for second serial port
 #define RXD2 33
 #define TXD2 4
 
+// Team name and id
 String team_name = "Jeepetones";
 int id = 15;
 
@@ -36,7 +40,7 @@ void setup() {
   delay(1000);
 
   WiFi.mode(WIFI_STA);
-  WiFi.begin(ssid, password);
+  WiFi.begin(ssid, password);  // NO credentials here, they go in esp_wpa2 functions
 
   // Connect
   while (WiFi.status() != WL_CONNECTED) {
@@ -55,7 +59,7 @@ void setup() {
   }
 
   Serial.println("MQTT connected");
-  Serial2.print("r");
+  Serial2.print("r"); // Advise the arduino everything is ready
 }
 
 /*-----------------------------------------------------*/
@@ -184,11 +188,14 @@ void start_lap() {
 void loop() {
   mqttClient.poll();
   
-  if (Serial2.available()) {  // Read the serial port and retreive the received signs to send the adequate message to the broker
+  // Read the serial port and retreive the received signs to send the adequate message to the broker
+  if (Serial2.available()) {
     char c = Serial2.read();
     rcv_msg += c;
+
+    // When end of msg (}) is detected parse the input
     if (c == '}') {
-      Serial.print("ESP32 received: ");
+      Serial.print("ESP32 recibió: ");
       Serial.println(rcv_msg);
 
       if (rcv_msg[1] == 'l' && rcv_msg[2] == 'l') { // lost_line
@@ -199,7 +206,7 @@ void loop() {
         visible_line(value);
 
       } else if (rcv_msg[1] == 'e' && rcv_msg[2] == 'l') { //end_lap
-        int value = rcv_msg.substring(3).toInt();
+        float value = rcv_msg.substring(3).toFloat();
         end_lap(value);
 
       } else if (rcv_msg[1] == 'o' && rcv_msg[2] == 'd') { //obst_det
@@ -229,3 +236,4 @@ void loop() {
     }
   }
 }
+
