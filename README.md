@@ -2,7 +2,7 @@
 ## Ainara Yu Elio San Martín y Rui Bartolomé Segura
 Robot siguelineas con comunicación IoT a través de MQTT.
 
-## 1.Organización del código
+## 1. Organización del código
 ### Arduino
 El arduino se encarga de seguir la linea, comprobar la distancia a objetos y de generar los mensajes que luego se enviarán por comunicación en serie a la placa ESP32 para que esta los envíe al servidor mqtt. <br>
 Para esto disponemos de tres tareas controladas por RTOS de arduino, estas son:
@@ -24,7 +24,39 @@ if (dist <= (DIST_SLOW + DIST_STOP) && dist > 0.1 ) {
 }
 ```
 
-Tarea Infrarojos y PD- Tarea dedicada a la detección de los infrarrojos y a la regulación de la velocidad por un PD.
+#### Tarea Infrarojos y PD
+Tarea con nivel de prioridad 3
+Tarea dedicada a la detección de los infrarrojos y a la regulación de la velocidad por un PD. Está tarea distingue dos casos, el primero si ningún sensor detecta línea y el otro si alguno de los sensores detecta.
+Si ningún sensor detecta línea el robot girará hacia el lado del último sensor que haya detectado la línea. 
+```c
+if (left <= 600 && middle <= 600 && right <= 600) {
+  /* Find line protocol, if last seen in left sensor, turn left and viceversa */
+  if (prev_right > 600) {
+    analogWrite(PIN_Motor_PWML, vel_turn);
+    analogWrite(PIN_Motor_PWMR, 0);
 
-####
-- Tarea que envía los PINGs requeridos cada 4 segundos.
+  } else if (prev_left > 600) {
+    analogWrite(PIN_Motor_PWML, 0);
+    analogWrite(PIN_Motor_PWMR, vel_turn);
+  }
+}
+```
+Si alguno de los sensores lee que hay línea se calculará la velocidad de los mototres con un PD.
+```c
+// PD logic
+error = right - left;
+
+P = error;
+D = error - lastError;
+
+float pid_output = (Kp * P) + (Kd * D);
+
+lastError = error; // Save last error to compare after
+
+// Calculate velocities
+int speedLeft = BASE_SPEED + pid_output;
+int speedRight = BASE_SPEED - pid_output;
+```
+#### Tarea que envía los PINGs
+Tarea con nivel de prioridad 1
+Enviará los pings requeridos cada 4 segundos.
