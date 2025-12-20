@@ -61,7 +61,7 @@ Tarea con nivel de prioridad 1
 Enviará los pings requeridos cada 4 segundos.
 
 ## 2. Organización del código en la ESP32
-Tiene como función recivir la información que le mande la placa Arduino a través del puerto serie y reenviarla al broker a usando MQTT.<br>
+Tiene como función recibir la información que le mande la placa Arduino a través del puerto serie y reenviarla al broker a usando MQTT.<br>
 
 ### Setup
 Al tener dos puertos series el que se destinó a la comunicación fue el número 2.
@@ -78,9 +78,9 @@ El resto del setup es la conexión wifi y MQTT una vez ha conseguido enlazarse c
 ```
 
 ### Parseo de mensajes
-Usamos como estandar para todos los mensajes un comienzo con "{" y una terminación "}". Todos los mensajes van abreviados en 2 letras y de ser necesaria más información va acto seguido despues de las 2 letras.
+Usamos como estándar para todos los mensajes un comienzo con "{" y una terminación "}". Todos los mensajes van abreviados en 2 letras y de ser necesaria más información va acto seguido después de las 2 letras.
 ```c
-// Ejemplo de como se parsea los mensajes del ping
+// Ejemplo de cómo se parsean los mensajes del ping
 else if (rcv_msg[1] == 'p' && rcv_msg[2] == 'm') { //ping_message
   int time = rcv_msg.substring(3).toInt();
   ping_message(time);
@@ -88,7 +88,7 @@ else if (rcv_msg[1] == 'p' && rcv_msg[2] == 'm') { //ping_message
 }
 ```
 ```c
-// Ejemplo de como se envió desde el Arduino
+// Ejemplo de cómo se envió desde el Arduino
 long ping_time = get_time_diff(start_time, millis());
 String ping_message = "{pm" + String(ping_time) + "}";
 Serial.print(ping_message); // Send ping message every 4s with low priority
